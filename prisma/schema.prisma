@@ -1,45 +1,17 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-
 model User {
   id        String   @id @default(cuid())
+  name      String?
   email     String   @unique
   password  String
-  wallet    Int      @default(0)  // stores balance in kobo (NGN * 100)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  balance   Int      @default(0)  // store in kobo (₦)
+  numbers   PurchasedNumber[]
 }
 
-
-model Number {
-  id          String   @id @default(cuid())
-  phoneNumber String   @unique
-  country     String
-  price       Int
-  status      String   @default("available") // "available", "assigned", "expired"
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-}
-
-model Transaction {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  amount    Int
-  status    String   @default("pending") // "pending", "success", "failed"
-  createdAt DateTime @default(now())
-}
 model PurchasedNumber {
-  id        Int      @id @default(autoincrement())
+  id          String @id @default(cuid())
   phoneNumber String
-  sid       String
-  userEmail String
-  createdAt DateTime @default(now())
+  sid         String
+  user        User   @relation(fields: [userId], references: [id])
+  userId      String
+  createdAt   DateTime @default(now())
 }
