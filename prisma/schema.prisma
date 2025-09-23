@@ -11,9 +11,11 @@ model User {
   id        Int       @id @default(autoincrement())
   email     String    @unique
   password  String
+  role      String    @default("user") // "user" or "admin"
   createdAt DateTime  @default(now())
   numbers   Number[]
 }
+
 
 model Number {
   id        Int       @id @default(autoincrement())
@@ -31,13 +33,4 @@ model Transaction {
   amount    Float
   type      String
   createdAt DateTime  @default(now())
-}
-
-model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
-  password  String
-  role      String    @default("user") // "user" or "admin"
-  createdAt DateTime  @default(now())
-  numbers   Number[]
 }
