@@ -15,19 +15,19 @@ export default function BuyNumberPage() {
     setLoading(false);
   };
 
-  const initPayment = async (phoneNumber: string) => {
-    const res = await fetch("/api/paystack/init", {
+  const buyFromWallet = async (phoneNumber: string) => {
+    const res = await fetch("/api/numbers/buy", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phoneNumber }),
     });
     const data = await res.json();
 
-    if (data.authorizationUrl) {
-      // Redirect to Paystack hosted payment page
-      window.location.href = data.authorizationUrl;
+    if (data.success) {
+      alert("Number purchased successfully!");
+      window.location.href = "/dashboard";
     } else {
-      alert("Failed to initialize payment");
+      alert(data.error || "Failed to buy number");
     }
   };
 
@@ -66,7 +66,7 @@ export default function BuyNumberPage() {
               </span>
               <button
                 className="bg-green-600 text-white px-3 py-1 rounded"
-                onClick={() => initPayment(num.phoneNumber)}
+                onClick={() => buyFromWallet(num.phoneNumber)}
               >
                 Buy ₦500
               </button>
