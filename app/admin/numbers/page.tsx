@@ -1,16 +1,16 @@
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { requireAdmin } from "@/lib/isAdmin";
+import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/requireAdmin";
 
-export async function GET() {
+export default async function AdminPage() {
   try {
     await requireAdmin();
-    const numbers = await prisma.purchasedNumber.findMany({
-      include: { user: { select: { email: true } } },
-      orderBy: { createdAt: "desc" },
-    });
-    return NextResponse.json(numbers);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 403 });
+  } catch (err) {
+    redirect("/"); // redirect non-admins
   }
+
+  return (
+    <div>
+      {/* Admin UI here */}
+    </div>
+  );
 }
