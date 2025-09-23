@@ -1,19 +1,16 @@
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { requireAdmin } from "@/lib/isAdmin";
+import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/requireAdmin";
 
-export async function POST(req: Request) {
+export default async function AdminPage() {
   try {
     await requireAdmin();
-    const { userId, amount } = await req.json();
-
-    const updated = await prisma.user.update({
-      where: { id: userId },
-      data: { balance: { increment: amount } }, // amount can be positive or negative
-    });
-
-    return NextResponse.json(updated);
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 403 });
+  } catch (err) {
+    redirect("/"); // redirect non-admins
   }
+
+  return (
+    <div>
+      {/* Admin UI here */}
+    </div>
+  );
 }
