@@ -36,3 +36,10 @@ model Transaction {
   status    String   @default("pending") // "pending", "success", "failed"
   createdAt DateTime @default(now())
 }
+model PurchasedNumber {
+  id        Int      @id @default(autoincrement())
+  phoneNumber String
+  sid       String
+  userEmail String
+  createdAt DateTime @default(now())
+}
