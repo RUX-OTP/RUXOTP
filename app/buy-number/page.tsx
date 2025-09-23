@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 export default function BuyNumberPage() {
-  const [country, setCountry] = useState("NG"); // default Nigeria
+  const [country, setCountry] = useState("NG");
   const [numbers, setNumbers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -15,14 +15,20 @@ export default function BuyNumberPage() {
     setLoading(false);
   };
 
-  const buyNumber = async (phoneNumber: string) => {
-    const res = await fetch("/api/numbers/buy", {
+  const initPayment = async (phoneNumber: string) => {
+    const res = await fetch("/api/paystack/init", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phoneNumber }),
     });
     const data = await res.json();
-    alert(data.message);
+
+    if (data.authorizationUrl) {
+      // Redirect to Paystack hosted payment page
+      window.location.href = data.authorizationUrl;
+    } else {
+      alert("Failed to initialize payment");
+    }
   };
 
   return (
@@ -55,12 +61,14 @@ export default function BuyNumberPage() {
               key={i}
               className="flex justify-between items-center border p-3 rounded"
             >
-              <span>{num.friendlyName} ({num.phoneNumber})</span>
+              <span>
+                {num.friendlyName} ({num.phoneNumber})
+              </span>
               <button
                 className="bg-green-600 text-white px-3 py-1 rounded"
-                onClick={() => buyNumber(num.phoneNumber)}
+                onClick={() => initPayment(num.phoneNumber)}
               >
-                Buy
+                Buy ₦500
               </button>
             </div>
           ))
