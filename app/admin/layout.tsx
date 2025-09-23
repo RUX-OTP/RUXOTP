@@ -1,26 +1,19 @@
-import Link from "next/link";
+// app/admin/layout.tsx
+import { ReactNode } from "react";
+import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/requireAdmin";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+  try {
+    await requireAdmin(); // 🔐 Block non-admins
+  } catch (err) {
+    redirect("/"); // 🚪 Send them back to home
+  }
+
   return (
-    <div className="flex">
-      <aside className="w-64 bg-gray-800 text-white min-h-screen p-6 space-y-4">
-        <h2 className="text-xl font-bold">Admin Panel</h2>
-        <nav className="space-y-2">
-          <Link href="/admin" className="block hover:underline">
-            Dashboard
-          </Link>
-          <Link href="/admin/users" className="block hover:underline">
-            Users
-          </Link>
-          <Link href="/admin/numbers" className="block hover:underline">
-            Numbers
-          </Link>
-          <Link href="/admin/transactions" className="block hover:underline">
-            Transactions
-          </Link>
-        </nav>
-      </aside>
-      <main className="flex-1 p-8">{children}</main>
+    <div className="min-h-screen p-6">
+      <h1 className="text-3xl font-bold mb-6">Admin Panel</h1>
+      {children}
     </div>
   );
 }
