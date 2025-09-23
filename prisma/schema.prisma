@@ -1,32 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  password  String   // hashed password
+  password  String
   name      String?
-  balance   Int      @default(0)
-  role      String   @default("user")
-
-  numbers        Number[]
-  transactions   Transaction[]
+  role      String   @default("user") // "user" or "admin"
   createdAt DateTime @default(now())
 }
 
+model Number {
+  id          String   @id @default(cuid())
+  phoneNumber String   @unique
+  country     String
+  price       Int
+  status      String   @default("available") // "available", "assigned", "expired"
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+}
 
 model Transaction {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   amount    Int
-  type      String   // "credit" | "debit"
-  createdAt DateTime @default(now())
-}
-
-model Number {
-  id        String   @id @default(cuid())
-  userId    String?
-  user      User?    @relation(fields: [userId], references: [id])
-  phone     String
-  country   String
-  active    Boolean  @default(true)
+  status    String   @default("pending") // "pending", "success", "failed"
   createdAt DateTime @default(now())
 }
