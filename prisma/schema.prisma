@@ -1,15 +1,16 @@
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  password  String
+  password  String   // hashed password
   name      String?
-  balance   Int      @default(0) // store in Naira
+  balance   Int      @default(0)
   role      String   @default("user")
 
   numbers        Number[]
   transactions   Transaction[]
   createdAt DateTime @default(now())
 }
+
 
 model Transaction {
   id        String   @id @default(cuid())
