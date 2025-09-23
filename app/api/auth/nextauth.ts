@@ -50,3 +50,11 @@ export default NextAuth({
   },
   secret: process.env.NEXTAUTH_SECRET,
 });
+callbacks: {
+  async session({ session, token }) {
+    if (token?.email) {
+      session.user.email = token.email;
+    }
+    return session;
+  },
+},
