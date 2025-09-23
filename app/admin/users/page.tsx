@@ -1,9 +1,11 @@
 // app/admin/users/page.tsx
+import { redirect } from "next/navigation";
+import { requireAdmin } from "@/lib/requireAdmin";
 "use client";
 
 import { useEffect, useState } from "react";
 
-export default function AdminUsersPage() {
+function AdminUsersComponent() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -51,19 +53,6 @@ export default function AdminUsersPage() {
       alert(err.message);
     }
   };
-import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/requireAdmin";
-import AdminUsersComponent from "./AdminUsersComponent"; // your existing UI
-
-export default async function AdminUsersPage() {
-  try {
-    await requireAdmin(); // Throws error if not admin
-  } catch (err) {
-    redirect("/"); // redirect non-admin users to home
-  }
-
-  return <AdminUsersComponent />;
-}
 
   if (loading) return <p className="p-6">Loading...</p>;
 
@@ -106,4 +95,15 @@ export default async function AdminUsersPage() {
       </table>
     </div>
   );
+}
+
+// ✅ Server-side admin check wrapper
+export default async function AdminUsersPage() {
+  try {
+    await requireAdmin(); // Throws error if not admin
+  } catch (err) {
+    redirect("/"); // Redirect non-admins to homepage
+  }
+
+  return <AdminUsersComponent />;
 }
