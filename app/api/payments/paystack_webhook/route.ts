@@ -8,9 +8,14 @@ export async function POST(req: Request) {
     if (body.event === "charge.success") {
       const { email, amount } = body.data;
 
-      // Find user
       const user = await prisma.user.findUnique({ where: { email } });
       if (user) {
+        // Credit balance
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { balance: { increment: amount / 100 } }, // NGN
+        });
+
         // Save transaction
         await prisma.transaction.create({
           data: {
@@ -27,4 +32,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Webhook failed" }, { status: 500 });
   }
 }
-
