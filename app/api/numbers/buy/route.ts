@@ -1,33 +1,39 @@
 import { NextResponse } from "next/server";
-import twilio from "twilio";
+import prisma from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
-    const { country, code } = await req.json();
+    const { userId, numberId, price } = await req.json();
 
-    // Twilio Credentials (set in Vercel Environment Variables)
-    const accountSid = process.env.TWILIO_ACCOUNT_SID!;
-    const authToken = process.env.TWILIO_AUTH_TOKEN!;
-    const client = twilio(accountSid, authToken);
+    const user = await prisma.user.findUnique({ where: { id: userId } });
 
-    // Search for available number
-    const numbers = await client.availablePhoneNumbers(code).local.list({
-      limit: 1,
-    });
-
-    if (numbers.length === 0) {
-      return NextResponse.json({ error: "No numbers available" }, { status: 404 });
+    if (!user || user.balance < price) {
+      return NextResponse.json({ error: "Insufficient balance ❌" }, { status: 400 });
     }
 
-    // Purchase the number
-    const purchased = await client.incomingPhoneNumbers.create({
-      phoneNumber: numbers[0].phoneNumber,
+    // Deduct balance
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { balance: { decrement: price } },
     });
 
-    return NextResponse.json({ number: purchased.phoneNumber });
+    // Save transaction
+    await prisma.transaction.create({
+      data: {
+        userId: user.id,
+        amount: price,
+        type: "debit",
+      },
+    });
+
+    // Assign number to user
+    await prisma.number.update({
+      where: { id: numberId },
+      data: { userId: user.id },
+    });
+
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Failed to buy number" }, { status: 500 });
+    return NextResponse.json({ error: "Buy failed" }, { status: 500 });
   }
 }
-
