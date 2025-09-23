@@ -1,47 +1,24 @@
-// app/api/auth/signup/route.ts
+import { hash } from "bcrypt";
 import { NextResponse } from "next/server";
-import { prisma } from "../../../src/lib/prisma";
-import { hashPassword, signJwt } from "../../../src/lib/auth";
+import prisma from "@/lib/prisma";
 
-type ReqBody = {
-  email?: string;
-  password?: string;
-};
-
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const body = (await request.json()) as ReqBody;
-    const email = (body.email || "").trim().toLowerCase();
-    const password = body.password || "";
+    const { email, password, name } = await req.json();
 
-    if (!email || !password) {
-      return NextResponse.json({ ok: false, message: "Email and password required" }, { status: 400 });
-    }
-    if (password.length < 6) {
-      return NextResponse.json({ ok: false, message: "Password must be at least 6 characters" }, { status: 400 });
-    }
-
-    // Check existing
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return NextResponse.json({ ok: false, message: "Email already registered" }, { status: 409 });
+      return NextResponse.json({ error: "User already exists" }, { status: 400 });
     }
 
-    const hashed = await hashPassword(password);
+    const hashed = await hash(password, 10);
+
     const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashed,
-      },
-      select: { id: true, email: true, role: true, createdAt: true },
+      data: { email, password: hashed, name },
     });
 
-    // Sign token
-    const token = signJwt({ sub: user.id, email: user.email, role: user.role });
-
-    return NextResponse.json({ ok: true, message: "Signup successful", token, user });
-  } catch (err: any) {
-    console.error("SIGNUP ERROR:", err);
-    return NextResponse.json({ ok: false, message: err?.message || "Server error" }, { status: 500 });
+    return NextResponse.json({ success: true, user });
+  } catch (error) {
+    return NextResponse.json({ error: "Signup failed" }, { status: 500 });
   }
-                                }
+}
