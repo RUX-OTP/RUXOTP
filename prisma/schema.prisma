@@ -11,10 +11,11 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   password  String
-  name      String?
-  role      String   @default("user") // "user" or "admin"
+  wallet    Int      @default(0)  // stores balance in kobo (NGN * 100)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
+
 
 model Number {
   id          String   @id @default(cuid())
