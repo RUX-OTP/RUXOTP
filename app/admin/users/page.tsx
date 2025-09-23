@@ -1,32 +1,15 @@
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAdmin } from "@/lib/isAdmin";
 
-export default async function UsersPage() {
-  const users = await prisma.user.findMany();
-
-  return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Users</h1>
-      <table className="w-full border">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="p-2 border">ID</th>
-            <th className="p-2 border">Email</th>
-            <th className="p-2 border">Created</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((u) => (
-            <tr key={u.id}>
-              <td className="p-2 border">{u.id}</td>
-              <td className="p-2 border">{u.email}</td>
-              <td className="p-2 border">
-                {new Date(u.createdAt).toLocaleDateString()}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+export async function GET() {
+  try {
+    await requireAdmin();
+    const users = await prisma.user.findMany({
+      select: { id: true, email: true, balance: true, role: true },
+    });
+    return NextResponse.json(users);
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 403 });
+  }
 }
-
