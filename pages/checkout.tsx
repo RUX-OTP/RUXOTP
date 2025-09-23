@@ -18,3 +18,9 @@ callback: async function (response: any) {
     alert("Verification failed: " + result.error);
   }
 }
+<a
+  href="/checkout"
+  className="mt-6 bg-blue-600 px-4 py-2 rounded text-white"
+>
+  Add Funds
+</a>
