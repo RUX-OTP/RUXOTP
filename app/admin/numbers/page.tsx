@@ -1,32 +1,16 @@
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { requireAdmin } from "@/lib/isAdmin";
 
-export default async function NumbersPage() {
-  const numbers = await prisma.number.findMany({ include: { user: true } });
-
-  return (
-    <div>
-      <h1 className="text-2xl font-bold mb-6">Purchased Numbers</h1>
-      <table className="w-full border">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="p-2 border">ID</th>
-            <th className="p-2 border">Number</th>
-            <th className="p-2 border">Country</th>
-            <th className="p-2 border">User</th>
-          </tr>
-        </thead>
-        <tbody>
-          {numbers.map((n) => (
-            <tr key={n.id}>
-              <td className="p-2 border">{n.id}</td>
-              <td className="p-2 border">{n.phone}</td>
-              <td className="p-2 border">{n.country}</td>
-              <td className="p-2 border">{n.user?.email || "N/A"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+export async function GET() {
+  try {
+    await requireAdmin();
+    const numbers = await prisma.purchasedNumber.findMany({
+      include: { user: { select: { email: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+    return NextResponse.json(numbers);
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 403 });
+  }
 }
-
