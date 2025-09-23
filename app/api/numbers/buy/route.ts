@@ -1,39 +1,39 @@
 import { NextResponse } from "next/server";
+import twilio from "twilio";
 import prisma from "@/lib/prisma";
+import { getServerSession } from "next-auth";
 
 export async function POST(req: Request) {
+  const body = await req.json();
+  const { phoneNumber } = body;
+
+  const session = await getServerSession();
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
+  const client = twilio(
+    process.env.TWILIO_ACCOUNT_SID!,
+    process.env.TWILIO_AUTH_TOKEN!
+  );
+
   try {
-    const { userId, numberId, price } = await req.json();
-
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-
-    if (!user || user.balance < price) {
-      return NextResponse.json({ error: "Insufficient balance ❌" }, { status: 400 });
-    }
-
-    // Deduct balance
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { balance: { decrement: price } },
+    // Purchase number from Twilio
+    const purchased = await client.incomingPhoneNumbers.create({
+      phoneNumber,
     });
 
-    // Save transaction
-    await prisma.transaction.create({
+    // Save in DB
+    await prisma.purchasedNumber.create({
       data: {
-        userId: user.id,
-        amount: price,
-        type: "debit",
+        phoneNumber: purchased.phoneNumber,
+        userEmail: session.user.email,
+        sid: purchased.sid,
       },
     });
 
-    // Assign number to user
-    await prisma.number.update({
-      where: { id: numberId },
-      data: { userId: user.id },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    return NextResponse.json({ error: "Buy failed" }, { status: 500 });
+    return NextResponse.json({ message: "Number purchased successfully!" });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
