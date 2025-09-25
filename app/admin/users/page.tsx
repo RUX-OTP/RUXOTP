@@ -1,11 +1,8 @@
-// app/admin/users/page.tsx
-import { redirect } from "next/navigation";
-import { requireAdmin } from "@/lib/requireAdmin";
 "use client";
 
 import { useEffect, useState } from "react";
 
-function AdminUsersComponent() {
+export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -57,9 +54,8 @@ function AdminUsersComponent() {
   if (loading) return <p className="p-6">Loading...</p>;
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Admin Panel - Users</h1>
-
+    <div>
+      <h2 className="text-xl font-bold mb-4">Manage Users</h2>
       <table className="w-full border-collapse border">
         <thead className="bg-gray-200">
           <tr>
@@ -95,15 +91,4 @@ function AdminUsersComponent() {
       </table>
     </div>
   );
-}
-
-// ✅ Server-side admin check wrapper
-export default async function AdminUsersPage() {
-  try {
-    await requireAdmin(); // Throws error if not admin
-  } catch (err) {
-    redirect("/"); // Redirect non-admins to homepage
-  }
-
-  return <AdminUsersComponent />;
 }
