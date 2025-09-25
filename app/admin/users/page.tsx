@@ -1,94 +1,39 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const res = await fetch("/api/admin/users");
-        const data = await res.json();
-
-        if (res.ok) {
-          setUsers(data);
-        } else {
-          alert(data.error || "Failed to fetch users");
-        }
-      } catch (err: any) {
-        alert(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUsers();
+    fetch("/api/admin/get-users") // assuming you have a users API
+      .then((res) => res.json())
+      .then((data) => setUsers(data));
   }, []);
 
-  const updateBalance = async (userId: string, amount: number) => {
-    try {
-      const res = await fetch("/api/admin/users/balance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, amount }),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        alert("Balance updated successfully!");
-        setUsers(
-          users.map((u) =>
-            u.id === userId ? { ...u, balance: data.balance } : u
-          )
-        );
-      } else {
-        alert(data.error || "Failed to update balance");
-      }
-    } catch (err: any) {
-      alert(err.message);
-    }
+  const handleLogout = async () => {
+    await fetch("/api/admin/logout", { method: "POST" });
+    window.location.href = "/admin/login";
   };
 
-  if (loading) return <p className="p-6">Loading...</p>;
-
   return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Manage Users</h2>
-      <table className="w-full border-collapse border">
-        <thead className="bg-gray-200">
-          <tr>
-            <th className="p-2 border">Email</th>
-            <th className="p-2 border">Balance (₦)</th>
-            <th className="p-2 border">Role</th>
-            <th className="p-2 border">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id} className="text-center">
-              <td className="p-2 border">{user.email}</td>
-              <td className="p-2 border">₦{user.balance / 100}</td>
-              <td className="p-2 border">{user.role}</td>
-              <td className="p-2 border space-x-2">
-                <button
-                  className="bg-green-500 text-white px-2 py-1 rounded"
-                  onClick={() => updateBalance(user.id, 1000 * 100)} // Add ₦1000
-                >
-                  +₦1000
-                </button>
-                <button
-                  className="bg-red-500 text-white px-2 py-1 rounded"
-                  onClick={() => updateBalance(user.id, -1000 * 100)} // Deduct ₦1000
-                >
-                  -₦1000
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-xl font-bold">Admin Users</h1>
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 text-white px-4 py-2 rounded"
+        >
+          Logout
+        </button>
+      </div>
+      <ul>
+        {users.map((user, i) => (
+          <li key={i} className="border p-2 rounded mb-2">
+            {user.username} - {user.role}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
