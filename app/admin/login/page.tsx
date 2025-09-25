@@ -2,17 +2,24 @@
 import { useState } from "react";
 
 export default function AdminLoginPage() {
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
-      document.cookie = `admin_token=${password}; path=/`;
+    const res = await fetch("/api/admin/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (res.ok) {
       window.location.href = "/admin/users";
     } else {
-      setError("Invalid password");
+      const data = await res.json();
+      setError(data.message || "Login failed");
     }
   };
 
@@ -24,8 +31,15 @@ export default function AdminLoginPage() {
       >
         <h1 className="text-xl font-bold mb-4">Admin Login</h1>
         <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="w-full border p-2 rounded mb-3"
+        />
+        <input
           type="password"
-          placeholder="Enter Admin Password"
+          placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="w-full border p-2 rounded mb-3"
